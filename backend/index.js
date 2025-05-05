@@ -1,18 +1,41 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const corsConfig = require("./middleware/corsConfig");
+const { connectDB } = require("./config/dbConfig");
+
+const authRoute = require("./routes/auth");
+// require("./models/AssociationsRelationship");
+
+require("dotenv").config();
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+// CONNECT DB
+connectDB();
 
-// Middleware
-app.use(cors());
+// Import route login
+const loginRoute = require("./Login");
+// MIDDLEWARE
+app.use(corsConfig);
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("common"));
 
-// Route cơ bản
-app.get('/api', (req, res) => {
-  res.json({ message: 'Hello from Node.js backend!' });
-});
+// ROUTE
+app.use("/api/auth", authRoute);
 
 // Khởi động server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+app
+  .listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  })
+  .on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `❌ Port ${PORT} is already in use. Please stop the other process or change the port.`
+      );
+    } else {
+      console.error("❌ Server error:", err);
+    }
+  });
